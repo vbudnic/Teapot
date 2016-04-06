@@ -219,7 +219,11 @@ std::vector< fv3 > bitangent;
 std::vector<std::vector< iv3 > > faces;
 std::vector< unsigned int > vi,ti,ni;
 int vindex,tindex,nindex;
-
+bool loadSucceed = loadOBJ("data/teapot.605.obj", vertices, tc, normals,
+    tangent,bitangent,vi,ti,ni);
+if(!loadSucceed){
+    std::cout<<"load .obj file failed!"<<std::endl;
+}
 glutInit(&argc,argv);
 glutInitDisplayMode(GLUT_RGBA|GLUT_DEPTH|GLUT_DOUBLE);
 glutInitWindowSize(512,512);
@@ -228,12 +232,10 @@ glutCreateWindow("my_cool_cube");
 setup_the_viewvol();
 do_lights();
 do_material();
-bool loadSucceed = loadOBJ("data/teapot.605.obj", vertices, tc, normals,
-    tangent,bitangent,vi,ti,ni);
 
-if(!loadSucceed){
-    std::cout<<"load .obj file failed!"<<std::endl;
-}
+
+
+
 
 // for( int i=0; i<vertices.size(); ++i)
 //   std::cout << vertices[i].x <<","<<vertices[i].y<<","<<vertices[i].z<<
@@ -245,7 +247,7 @@ glBegin(GL_QUADS);
             vindex=vi[i+j];
             tindex=ti[i+j];
             nindex=ni[i+j];
-            std::cout<<vi[i+j]<<","<<ti[i+j]<<","<<ni[i+j]<<std::endl;
+            //std::cout<<vi[i+j]<<","<<ti[i+j]<<","<<ni[i+j]<<std::endl;
 
             glNormal3f(normals[nindex].x,normals[nindex].y,
               normals[nindex].z);
@@ -275,7 +277,7 @@ switch(key) {
 int main(int argc, char **argv)
 {
 initOGL(argc,argv);
-// glutDisplayFunc(draw_stuff);
+glutDisplayFunc(draw_stuff);
 glutIdleFunc(update);
 glutKeyboardFunc(getout);
 glutMainLoop();
