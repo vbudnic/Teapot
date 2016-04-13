@@ -83,16 +83,13 @@ bool loadOBJ(const char* path,std::vector<fv3> &vertex,
 	}else if(strcmp(header,"f")==0){
 	    std::string v1,v2,v3,v4;
 	    int vertexIndex[4],tcoordIndex[4],normalIndex[4];
-	    int checkNum = fscanf(file, 
+	    fscanf(file, 
 	    "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n", 
 	    &vertexIndex[0],&tcoordIndex[0],&normalIndex[0],
         &vertexIndex[1],&tcoordIndex[1],&normalIndex[1],
         &vertexIndex[2],&tcoordIndex[2],&normalIndex[2],
         &vertexIndex[3],&tcoordIndex[3],&normalIndex[3]);
-        if(checkNum!=12){
-            std::cout<<"cannot load the faces"<<std::endl;
-            return false;
-        }
+       
         vi.push_back(vertexIndex[0]);
         vi.push_back(vertexIndex[1]);
         vi.push_back(vertexIndex[2]);
@@ -141,7 +138,7 @@ gluPerspective(45.0,2.0,0.1,20.0);
 glMatrixMode(GL_MODELVIEW);
 glLoadIdentity();
 
-eye.x = 10.0; eye.y = 2.0; eye.z = -2.0;
+eye.x = -2.0; eye.y = 2.0; eye.z = -2.0;
 view.x = 0.0; view.y = 0.5; view.z = 0.0;
 up.x = 0.0; up.y = 1.0; up.z = 0.0;
 
@@ -150,15 +147,6 @@ gluLookAt(eye.x,eye.y,eye.z,view.x,view.y,view.z,up.x,up.y,up.z);
 
 void draw_stuff()
 {
-//glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-//glDrawArrays(GL_QUADS,0,24);
-//glutSwapBuffers();
-glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   //glActiveTexture(GL_TEXTURE1);
-   
-   //glEnable(GL_TEXTURE_2D);
-   
-   
 std::vector< fv3 > vertices;
 std::vector< fv2 > tc;
 std::vector< fv3 > normals;
@@ -173,21 +161,27 @@ if(!loadSucceed){
     std::cout<<"load .obj file failed!"<<std::endl;
 }
 
+
+//glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+//glDrawArrays(GL_QUADS,0,24);
+//glutSwapBuffers();
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   //glActiveTexture(GL_TEXTURE1);
+   
+   //glEnable(GL_TEXTURE_2D);
+   
+   
+
    glBegin(GL_QUADS);
-    for(int i=0;i<faceSize;i++){
-        for(int j=0;j<4;j++){
-            vindex=vi[i+j];
-            tindex=ti[i+j];
-            nindex=ni[i+j];
-            //std::cout<<vi[i+j]<<","<<ti[i+j]<<","<<ni[i+j]<<std::endl;
+    for(int i=0;i<faceSize*4;i++){
 
-            glNormal3f(normals[nindex].x,normals[nindex].y,
-              normals[nindex].z);
-            glTexCoord2f(tc[tindex].x,tc[tindex].y);
+        glNormal3f(normals[i].x,normals[i].y,
+              normals[i].z);
+            glTexCoord2f(tc[i].x,tc[i].y);
 
-            glVertex3f(vertices[vindex].x,vertices[vindex].y,
-             vertices[vindex].z);
-        }
+            glVertex3f(vertices[i].x,vertices[i].y,
+             vertices[i].z);
+
     }
 glEnd();
    //glDisable(GL_TEXTURE_2D);
@@ -212,6 +206,12 @@ float light0_diffuse[] = { 1.0, 1.0, 1.0, 0.0 };
 float light0_specular[] = { 1.0, 1.0, 1.0, 0.0 };
 float light0_position[] = { 1.5, 2.0, 2.0, 1.0 };
 float light0_direction[] = { -1.5, -2.0, -2.0, 1.0};
+
+float light1_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
+float light1_diffuse[] = { 1.0, 1.0, 1.0, 0.0 };
+float light1_specular[] = { 1.0, 1.0, 1.0, 0.0 };
+float light1_position[] = { 1.5, 2.0, 2.0, 1.0 };
+float light1_direction[] = { -1.5, -2.0, -2.0, 1.0};
 
 /* turn off scene default ambient */
 glLightModelfv(GL_LIGHT_MODEL_AMBIENT,light0_ambient);
