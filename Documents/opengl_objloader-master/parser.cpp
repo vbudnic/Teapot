@@ -135,14 +135,14 @@ glEnable(GL_DEPTH_TEST);
 /* specify size and shape of view volume */
 glMatrixMode(GL_PROJECTION);
 glLoadIdentity();
-gluPerspective(45.0,1.0,0.1,20.0);
+gluPerspective(45.0,2.0,0.1,20.0);
 
 /* specify position for view volume */
 glMatrixMode(GL_MODELVIEW);
 glLoadIdentity();
 
-eye.x = 2.0; eye.y = 2.0; eye.z = 2.0;
-view.x = 0.0; view.y = 0.0; view.z = 0.0;
+eye.x = 10.0; eye.y = 2.0; eye.z = -2.0;
+view.x = 0.0; view.y = 0.5; view.z = 0.0;
 up.x = 0.0; up.y = 1.0; up.z = 0.0;
 
 gluLookAt(eye.x,eye.y,eye.z,view.x,view.y,view.z,up.x,up.y,up.z);
@@ -150,18 +150,58 @@ gluLookAt(eye.x,eye.y,eye.z,view.x,view.y,view.z,up.x,up.y,up.z);
 
 void draw_stuff()
 {
-glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-glDrawArrays(GL_QUADS,0,24);
-glutSwapBuffers();
+//glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+//glDrawArrays(GL_QUADS,0,24);
+//glutSwapBuffers();
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   //glActiveTexture(GL_TEXTURE1);
+   
+   //glEnable(GL_TEXTURE_2D);
+   
+   
+std::vector< fv3 > vertices;
+std::vector< fv2 > tc;
+std::vector< fv3 > normals;
+std::vector< fv3 > tangent;
+std::vector< fv3 > bitangent;
+std::vector<std::vector< iv3 > > faces;
+std::vector< unsigned int > vi,ti,ni;
+int vindex,tindex,nindex;
+bool loadSucceed = loadOBJ("data/teapot.605.obj", vertices, tc, normals,
+    tangent,bitangent,vi,ti,ni);
+if(!loadSucceed){
+    std::cout<<"load .obj file failed!"<<std::endl;
+}
+
+   glBegin(GL_QUADS);
+    for(int i=0;i<faceSize;i++){
+        for(int j=0;j<4;j++){
+            vindex=vi[i+j];
+            tindex=ti[i+j];
+            nindex=ni[i+j];
+            //std::cout<<vi[i+j]<<","<<ti[i+j]<<","<<ni[i+j]<<std::endl;
+
+            glNormal3f(normals[nindex].x,normals[nindex].y,
+              normals[nindex].z);
+            glTexCoord2f(tc[tindex].x,tc[tindex].y);
+
+            glVertex3f(vertices[vindex].x,vertices[vindex].y,
+             vertices[vindex].z);
+        }
+    }
+glEnd();
+   //glDisable(GL_TEXTURE_2D);
+
+   glFlush();
 }
 
 void update()
 {
 //usleep(10000);
-glTranslatef(0.5,0.0,0.5);
-glRotatef(1.0,0.0,1.0,0.0);
-glTranslatef(-0.5,0.0,-0.5);
-glutPostRedisplay();
+//glTranslatef(0.5,0.0,0.5);
+//glRotatef(1.0,0.0,1.0,0.0);
+//glTranslatef(-0.5,0.0,-0.5);
+//glutPostRedisplay();
 }
 
 void do_lights()
@@ -211,56 +251,28 @@ int mybuf = 1;
 
 void initOGL(int argc, char **argv)
 {
-std::vector< fv3 > vertices;
-std::vector< fv2 > tc;
-std::vector< fv3 > normals;
-std::vector< fv3 > tangent;
-std::vector< fv3 > bitangent;
-std::vector<std::vector< iv3 > > faces;
-std::vector< unsigned int > vi,ti,ni;
-int vindex,tindex,nindex;
-bool loadSucceed = loadOBJ("data/teapot.605.obj", vertices, tc, normals,
-    tangent,bitangent,vi,ti,ni);
-if(!loadSucceed){
-    std::cout<<"load .obj file failed!"<<std::endl;
-}
-glutInit(&argc,argv);
-glutInitDisplayMode(GLUT_RGBA|GLUT_DEPTH|GLUT_DOUBLE);
-glutInitWindowSize(512,512);
-glutInitWindowPosition(100,50);
-glutCreateWindow("my_cool_cube");
+
+ glutInit(&argc, argv);
+   glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE | GLUT_ACCUM);
+   glutInitWindowSize(1024, 768);
+   glutInitWindowPosition(100 , 50);
+   glutCreateWindow("teapot test");
+
+   glClearColor(0.0, 0.0, 0.0, 0.0);
+   glEnable(GL_DEPTH_TEST);
+   glEnable(GL_MULTISAMPLE_ARB);
+
 setup_the_viewvol();
 do_lights();
 do_material();
-
-
-
-
 
 // for( int i=0; i<vertices.size(); ++i)
 //   std::cout << vertices[i].x <<","<<vertices[i].y<<","<<vertices[i].z<<
 //       std::endl;
 
-glBegin(GL_QUADS);
-    for(int i=0;i<faceSize;i++){
-        for(int j=0;j<4;j++){
-            vindex=vi[i+j];
-            tindex=ti[i+j];
-            nindex=ni[i+j];
-            //std::cout<<vi[i+j]<<","<<ti[i+j]<<","<<ni[i+j]<<std::endl;
-
-            glNormal3f(normals[nindex].x,normals[nindex].y,
-              normals[nindex].z);
-            glTexCoord2f(tc[tindex].x,tc[tindex].y);
-
-            glVertex3f(vertices[vindex].x,vertices[vindex].y,
-             vertices[vindex].z);
-        }
-    }
-glEnd();
 
 /* gray background */
-glClearColor(0.35,0.35,0.35,0.0);
+//glClearColor(0.35,0.35,0.35,0.0);
 }
 
 void getout(unsigned char key, int x, int y)
