@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cstring>
 #include <unistd.h>
+#include <fcntl.h>
 
 struct fv2{
 	float x,y;
@@ -102,7 +103,7 @@ bool loadOBJ(const char* path,std::vector<fv3> &vertex,
         ni.push_back(normalIndex[1]);
         ni.push_back(normalIndex[2]);
         ni.push_back(normalIndex[3]);
-        faceSize++;
+        faceSize+=4;
 	}
 	}	
 
@@ -145,6 +146,8 @@ up.x = 0.0; up.y = 1.0; up.z = 0.0;
 gluLookAt(eye.x,eye.y,eye.z,view.x,view.y,view.z,up.x,up.y,up.z);
 }
 
+int sprogram;
+
 void draw_stuff()
 {
 std::vector< fv3 > vertices;
@@ -161,20 +164,30 @@ if(!loadSucceed){
     std::cout<<"load .obj file failed!"<<std::endl;
 }
 
-glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   
-   glBegin(GL_QUADS);
-    for(int i=0;i<faceSize*4;i++){
+ glClearColor(0.0, 0.0, 0.0, 0.0);
+   glEnable(GL_DEPTH_TEST);
+   glEnable(GL_MULTISAMPLE_ARB);
 
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+//use Texture
+glUseProgram(sprogram);		
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D,1);
+glEnable(GL_TEXTURE_2D);
+
+   glBegin(GL_QUADS);
+    for(int i=0;i<(faceSize);i++){
         glNormal3f(normals[i].x,normals[i].y,
               normals[i].z);
             glTexCoord2f(tc[i].x,tc[i].y);
-
             glVertex3f(vertices[i].x,vertices[i].y,
              vertices[i].z);
-
     }
 glEnd();
+
+glDisable(GL_TEXTURE_2D);
+
 glFlush();
 }
 
@@ -185,6 +198,91 @@ void update()
 //glRotatef(1.0,0.0,1.0,0.0);
 //glTranslatef(-0.5,0.0,-0.5);
 //glutPostRedisplay();
+}
+
+char *read_shader_program(char *filename) 
+{
+FILE *fp;
+char *content = NULL;
+int fd, count;
+fd = open(filename,O_RDONLY);
+count = lseek(fd,0,SEEK_END);
+close(fd);
+content = (char *)calloc(1,(count+1));
+fp = fopen(filename,"r");
+count = fread(content,sizeof(char),count,fp);
+content[count] = '\0';
+fclose(fp);
+return content;
+}
+
+unsigned int set_shaders()
+{
+GLint vertCompiled, fragCompiled;
+char *vs, *fs;
+GLuint v, f, p;
+
+v = glCreateShader(GL_VERTEX_SHADER);
+f = glCreateShader(GL_FRAGMENT_SHADER);
+vs = read_shader_program("tex.vert");
+fs = read_shader_program("tex.frag");
+glShaderSource(v,1,(const char **)&vs,NULL);
+glShaderSource(f,1,(const char **)&fs,NULL);
+free(vs);
+free(fs); 
+glCompileShader(v);
+glCompileShader(f);
+p = glCreateProgram();
+glAttachShader(p,f);
+glAttachShader(p,v);
+glLinkProgram(p);
+// glUseProgram(p);
+return(p);
+}
+
+void set_uniform_parameters(unsigned int p)
+{
+int location;
+location = glGetUniformLocation(p,"mytexture");
+glUniform1i(location,0);
+}
+
+void load_texture(char *filename)
+{
+//FILE *fopen(), *fptr;
+FILE  *fptr;
+char buf[512], *parse;
+int im_size, im_width, im_height, max_color;
+unsigned char *texture_bytes, *tb_alpha, *tb_src, *tb_dst, *tb_final, *aarg; 
+//------------last edit save----------------
+
+fptr=fopen(filename,"r");
+fgets(buf,512,fptr);
+do{
+	fgets(buf,512,fptr);
+	} while(buf[0]=='#');
+parse = (char *)strtok(buf," \t");
+im_width = atoi(parse);
+
+parse = (char *)strtok(NULL," \n");
+im_height = atoi(parse);
+
+fgets(buf,512,fptr);
+parse = (char *)strtok(buf," \n");
+max_color = atoi(parse);
+
+im_size = im_width*im_height;
+texture_bytes = (unsigned char *)calloc(3,im_size);
+fread(texture_bytes,3,im_size,fptr);
+fclose(fptr);
+
+glBindTexture(GL_TEXTURE_2D,1);
+glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,im_width,im_height,0,GL_RGB, 
+	GL_UNSIGNED_BYTE,texture_bytes);
+glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+free(texture_bytes);
 }
 
 void do_lights()
@@ -199,7 +297,7 @@ float light0_direction[] = { -1.5, -2.0, -2.0, 1.0};
 float light1_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
 float light1_diffuse[] = { 1.0, 1.0, 1.0, 0.0 };
 float light1_specular[] = { 0.0, 1.0, 1.0, 0.0 };
-float light1_position[] = { 5.0, 0.0, 2.0, 1.0 };
+float light1_position[] = { 10.0, -2.0, 2.0, 1.0 };
 float light1_direction[] = { -1.0, -2.0, -2.0, 1.0};
 
 /* turn off scene default ambient */
@@ -259,15 +357,14 @@ void initOGL(int argc, char **argv)
    glutInitWindowPosition(100 , 50);
    glutCreateWindow("teapot test");
 
-   glClearColor(0.0, 0.0, 0.0, 0.0);
-   glEnable(GL_DEPTH_TEST);
-   glEnable(GL_MULTISAMPLE_ARB);
-   
+   load_texture("data/bubble_color.ppm");
 
 setup_the_viewvol();
 do_lights();
 do_material();
 
+sprogram=set_shaders();
+set_uniform_parameters(sprogram);
 }
 
 void getout(unsigned char key, int x, int y)
