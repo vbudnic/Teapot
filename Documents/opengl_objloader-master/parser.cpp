@@ -134,13 +134,13 @@ glEnable(GL_DEPTH_TEST);
 /* specify size and shape of view volume */
 glMatrixMode(GL_PROJECTION);
 glLoadIdentity();
-gluPerspective(45.0,1.6,0.1,20.0);
+gluPerspective(45.0,1.7,0.1,20.0);
 
 /* specify position for view volume */
 glMatrixMode(GL_MODELVIEW);
 glLoadIdentity();
 
-eye.x = -2.0; eye.y = 2.0; eye.z = -2.0;
+eye.x = -2.0; eye.y = 2.0; eye.z = 1.0;
 view.x = 0.0; view.y = 0.5; view.z = 0.0;
 up.x = 0.0; up.y = 1.0; up.z = 0.0;
 
@@ -358,9 +358,9 @@ void initOGL(int argc, char **argv)
    glutInitWindowPosition(100 , 50);
    glutCreateWindow("teapot test");
 
-   load_texture("data/water.ppm",1);
+   load_texture("data/water1.ppm",1);
    load_texture("data/fieldstoneN.ppm",2);
-   load_texture("data/bricks.ppm",3);
+   load_texture("data/texture.ppm",3);
 
 setup_the_viewvol();
 do_lights();
