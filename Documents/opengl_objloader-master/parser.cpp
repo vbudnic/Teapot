@@ -134,7 +134,7 @@ glEnable(GL_DEPTH_TEST);
 /* specify size and shape of view volume */
 glMatrixMode(GL_PROJECTION);
 glLoadIdentity();
-gluPerspective(45.0,1.4,0.1,20.0);
+gluPerspective(45.0,1.6,0.1,20.0);
 
 /* specify position for view volume */
 glMatrixMode(GL_MODELVIEW);
@@ -156,6 +156,8 @@ location = glGetUniformLocation(p,"mytexture");
 glUniform1i(location,0);
 location = glGetUniformLocation(p,"mynormalmap");
 glUniform1i(location,1);
+location = glGetUniformLocation(p,"mytexture1");
+glUniform1i(location,2);
 }
 
 void draw_stuff()
@@ -189,6 +191,9 @@ glActiveTexture(GL_TEXTURE0);
 glBindTexture(GL_TEXTURE_2D,1);
 glActiveTexture(GL_TEXTURE1);
 glBindTexture(GL_TEXTURE_2D,2);
+
+glActiveTexture(GL_TEXTURE2);
+glBindTexture(GL_TEXTURE_2D,3);
 glEnable(GL_TEXTURE_2D);
 
    glBegin(GL_QUADS);
@@ -349,12 +354,13 @@ void initOGL(int argc, char **argv)
 
  glutInit(&argc, argv);
    glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE | GLUT_ACCUM);
-   glutInitWindowSize(1024, 768);
+   glutInitWindowSize(1280, 720);
    glutInitWindowPosition(100 , 50);
    glutCreateWindow("teapot test");
 
-   load_texture("data/texture.ppm",1);
+   load_texture("data/water.ppm",1);
    load_texture("data/fieldstoneN.ppm",2);
+   load_texture("data/bricks.ppm",3);
 
 setup_the_viewvol();
 do_lights();
