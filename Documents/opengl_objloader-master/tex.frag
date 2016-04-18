@@ -1,28 +1,33 @@
-// Phong lighting in eye coordinates with texture and pure Phong specular.
-
-// These are set by the .vert code, interpolated.
-varying vec3 ec_vnormal, ec_vposition;
-
-// This is set by the .c code.
-uniform sampler2D mytexture;
+varying vec3 ec_vnormal, ec_vposition, ec_vtangent, ec_vbitangent;
+uniform sampler2D mytexture; 
+uniform sampler2D mynormalmap;
 
 void main()
 {
-vec3 P, N, L, V, R, tcolor;
-vec4 diffuse_color = gl_FrontMaterial.diffuse; 
-vec4 specular_color = gl_FrontMaterial.specular; 
+mat3 tform;
+vec3 P, N, L, V, H, mapN, tcolor;
+vec4 diffuse_color, specular_color; 
 float shininess = gl_FrontMaterial.shininess;
+float pi = 3.14159;
 
+// Create a 3x3 matrix from T, B, and N as columns:
+tform = mat3(ec_vtangent,ec_vbitangent,ec_vnormal);
 P = ec_vposition;
-N = normalize(ec_vnormal);
 L = normalize(gl_LightSource[0].position - P);
-V = normalize(-P);				// eye position is (0,0,0)!
-R = -L + 2.0*dot(L,N)*N;
+V = normalize(-P);				
+H = normalize(L+V);
 		
-// perspective correction:
-tcolor = vec3(texture2D(mytexture,gl_TexCoord[0].st/gl_TexCoord[0].q));
-diffuse_color = 0.1*diffuse_color + 0.9*vec4(tcolor,1.0);
-diffuse_color *= max(dot(N,L),0.0);
-specular_color *= pow(max(dot(R,V),0.0),shininess);
+mapN = vec3(texture2D(mynormalmap,gl_TexCoord[0].st));
+// x, y, and z are in [0.0,1.0], but x and y should be in [-1.0,1.0].
+mapN.xy = 2.0*mapN.xy - vec2(1.0,1.0);
+
+N = normalize(tform*normalize(mapN));
+
+tcolor = vec3(texture2D(mytexture,gl_TexCoord[0].st));
+diffuse_color = vec4(tcolor,1.0)*max(dot(N,L),0.0);
+specular_color = gl_FrontMaterial.specular*pow(max(dot(H,N),0.0),shininess);
+specular_color *= (shininess+2.0)/(8.0*pi);
 gl_FragColor = diffuse_color + specular_color;
+//gl_FragColor = vec4(0.0,1.0,0.0,1.0);
 }
+

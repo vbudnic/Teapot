@@ -29,6 +29,7 @@ struct iv3{
 // std::vector<std::vector<iv3> > face;
 // 
 int faceSize=0;
+int sprogram;
 bool loadOBJ(const char* path,std::vector<fv3> &vertex, 
     std::vector<fv2> &tcoord,std::vector<fv3> &normal, 
     std::vector<fv3> &tangent,std::vector<fv3> &bitangent,
@@ -146,7 +147,16 @@ up.x = 0.0; up.y = 1.0; up.z = 0.0;
 gluLookAt(eye.x,eye.y,eye.z,view.x,view.y,view.z,up.x,up.y,up.z);
 }
 
-int sprogram;
+
+
+void set_uniform_parameters(unsigned int p)
+{
+int location;
+location = glGetUniformLocation(p,"mytexture");
+glUniform1i(location,0);
+location = glGetUniformLocation(p,"mynormalmap");
+glUniform1i(location,1);
+}
 
 void draw_stuff()
 {
@@ -157,7 +167,9 @@ std::vector< fv3 > tangent;
 std::vector< fv3 > bitangent;
 std::vector<std::vector< iv3 > > faces;
 std::vector< unsigned int > vi,ti,ni;
-int vindex,tindex,nindex;
+//int vindex,tindex,nindex;
+int tanIndex=glGetUniformLocation(sprogram,"tangent");
+int bitanIndex=glGetUniformLocation(sprogram,"bitangent");
 bool loadSucceed = loadOBJ("data/teapot.605.obj", vertices, tc, normals,
     tangent,bitangent,vi,ti,ni);
 if(!loadSucceed){
@@ -171,9 +183,12 @@ if(!loadSucceed){
 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 //use Texture
-glUseProgram(sprogram);		
+glUseProgram(sprogram);	
+set_uniform_parameters(sprogram);
 glActiveTexture(GL_TEXTURE0);
 glBindTexture(GL_TEXTURE_2D,1);
+glActiveTexture(GL_TEXTURE1);
+glBindTexture(GL_TEXTURE_2D,2);
 glEnable(GL_TEXTURE_2D);
 
    glBegin(GL_QUADS);
@@ -181,6 +196,10 @@ glEnable(GL_TEXTURE_2D);
         glNormal3f(normals[i].x,normals[i].y,
               normals[i].z);
             glTexCoord2f(tc[i].x,tc[i].y);
+            glVertexAttrib3f(tanIndex,tangent[i].x,
+                tangent[i].y,tangent[i].z);
+            glVertexAttrib3f(bitanIndex,bitangent[i].x,
+                bitangent[i].y,bitangent[i].z);
             glVertex3f(vertices[i].x,vertices[i].y,
              vertices[i].z);
     }
@@ -240,14 +259,9 @@ glLinkProgram(p);
 return(p);
 }
 
-void set_uniform_parameters(unsigned int p)
-{
-int location;
-location = glGetUniformLocation(p,"mytexture");
-glUniform1i(location,0);
-}
 
-void load_texture(char *filename)
+
+void load_texture(char *filename,unsigned int tid)
 {
 //FILE *fopen(), *fptr;
 FILE  *fptr;
@@ -276,7 +290,7 @@ texture_bytes = (unsigned char *)calloc(3,im_size);
 fread(texture_bytes,3,im_size,fptr);
 fclose(fptr);
 
-glBindTexture(GL_TEXTURE_2D,1);
+glBindTexture(GL_TEXTURE_2D,tid);
 glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,im_width,im_height,0,GL_RGB, 
 	GL_UNSIGNED_BYTE,texture_bytes);
 glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
@@ -293,12 +307,6 @@ float light0_diffuse[] = { 1.0, 1.0, 1.0, 0.0 };
 float light0_specular[] = { 1.0, 1.0, 1.0, 0.0 };
 float light0_position[] = { -10.5, 2.0, 2.0, 1.0 };
 float light0_direction[] = { -1.5, -2.0, -2.0, 1.0};
-
-float light1_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
-float light1_diffuse[] = { 1.0, 1.0, 1.0, 0.0 };
-float light1_specular[] = { 0.0, 1.0, 1.0, 0.0 };
-float light1_position[] = { 10.0, -2.0, 2.0, 1.0 };
-float light1_direction[] = { -1.0, -2.0, -2.0, 1.0};
 
 /* turn off scene default ambient */
 glLightModelfv(GL_LIGHT_MODEL_AMBIENT,light0_ambient);
@@ -317,20 +325,8 @@ glLightf(GL_LIGHT0,GL_QUADRATIC_ATTENUATION,0.01);
 glLightfv(GL_LIGHT0,GL_POSITION,light0_position);
 glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,light0_direction);
 
-glLightfv(GL_LIGHT1,GL_AMBIENT,light1_ambient);
-glLightfv(GL_LIGHT1,GL_DIFFUSE,light1_diffuse);
-glLightfv(GL_LIGHT1,GL_SPECULAR,light1_specular);
-glLightf(GL_LIGHT1,GL_SPOT_EXPONENT,1.0);
-glLightf(GL_LIGHT1,GL_SPOT_CUTOFF,180.0);
-glLightf(GL_LIGHT1,GL_CONSTANT_ATTENUATION,0.5);
-glLightf(GL_LIGHT1,GL_LINEAR_ATTENUATION,0.1);
-glLightf(GL_LIGHT1,GL_QUADRATIC_ATTENUATION,0.01);
-glLightfv(GL_LIGHT1,GL_POSITION,light1_position);
-glLightfv(GL_LIGHT1,GL_SPOT_DIRECTION,light1_direction);
-
 glEnable(GL_LIGHTING);
 glEnable(GL_LIGHT0);
-glEnable(GL_LIGHT1);
 }
 
 void do_material()
@@ -357,14 +353,15 @@ void initOGL(int argc, char **argv)
    glutInitWindowPosition(100 , 50);
    glutCreateWindow("teapot test");
 
-   load_texture("data/bubble_color.ppm");
+   load_texture("data/bubble_color.ppm",1);
+   load_texture("data/fieldstoneN.ppm",2);
 
 setup_the_viewvol();
 do_lights();
 do_material();
 
 sprogram=set_shaders();
-set_uniform_parameters(sprogram);
+
 }
 
 void getout(unsigned char key, int x, int y)
