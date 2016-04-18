@@ -28,6 +28,7 @@ diffuse_color = vec4(tcolor,1.0)*max(dot(N,L),0.0);
 specular_color = gl_FrontMaterial.specular*pow(max(dot(H,N),0.0),shininess);
 specular_color *= (shininess+2.0)/(8.0*pi);
 gl_FragColor = diffuse_color + specular_color;
-//gl_FragColor = vec4(0.0,1.0,0.0,1.0);
+//gl_FragColor = vec4(tcolor,1.0) ;
+//gl_FragColor = vec4(N,1.0);
 }
 

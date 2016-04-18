@@ -353,7 +353,7 @@ void initOGL(int argc, char **argv)
    glutInitWindowPosition(100 , 50);
    glutCreateWindow("teapot test");
 
-   load_texture("data/bubble_color.ppm",1);
+   load_texture("data/texture.ppm",1);
    load_texture("data/fieldstoneN.ppm",2);
 
 setup_the_viewvol();
