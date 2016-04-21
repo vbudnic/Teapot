@@ -24,6 +24,9 @@ struct iv3{
 };
 
 
+float eye[] = {M_SQRT2,2.0,2.0};
+float viewpt[] = {0.0,0.0,0.0};
+float up[] = {0.0,1.0,0.0};
 
 // std::vector<fv3> vertex;
 // std::vector<fv2> tcoord;
@@ -34,7 +37,9 @@ struct iv3{
 // 
 int faceSize=0;
 int sprogram;
-int sprogram1;
+int sprogram1;// floor
+int sprogram_water;
+
 
 bool loadOBJ(const char* path,std::vector<fv3> &vertex, 
     std::vector<fv2> &tcoord,std::vector<fv3> &normal, 
@@ -134,20 +139,19 @@ void setup_the_viewvol()
 fv3 eye;
 fv3 view;
 fv3 up;
-
 glEnable(GL_DEPTH_TEST);
 
 /* specify size and shape of view volume */
 glMatrixMode(GL_PROJECTION);
 glLoadIdentity();
-gluPerspective(45.0,1.6,0.1,20.0);
+gluPerspective(75.0,1.6,0.1,20.0);
 
 /* specify position for view volume */
 glMatrixMode(GL_MODELVIEW);
 glLoadIdentity();
 
-eye.x = -5.0; eye.y = 2.0; eye.z = -3.0;
-view.x = 0.0; view.y = 0.5; view.z = 0.0;
+eye.x = -6.0; eye.y = 3.0; eye.z = -2.0;
+view.x = 0.0; view.y = 1; view.z = 0.0;
 up.x = 0.0; up.y = 1.0; up.z = 0.0;
 
 gluLookAt(eye.x,eye.y,eye.z,view.x,view.y,view.z,up.x,up.y,up.z);
@@ -159,7 +163,7 @@ void set_uniform_parameters(unsigned int p, int type)
 {
 
 int location;
-//---if type is 1 -> teapot; 2 -> floor; 3 -> top;
+//---if type is 1 -> teapot; 2 -> floor; 3 -> water;
 switch (type) {
 case 1:
 	
@@ -174,6 +178,13 @@ case 2:
 	glUniform1i(location,2);
 	location = glGetUniformLocation(p,"mynormalmap");
 	glUniform1i(location,3);
+	break;
+case 3:
+	
+	location = glGetUniformLocation(p,"mytexture");
+	glUniform1i(location,4);
+	//location = glGetUniformLocation(p,"mynormalmap");
+	//glUniform1i(location,5);
 	break;
 default:
 	
@@ -219,33 +230,40 @@ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //----Room
 //---------------------------
 float front[4][3]={{0.0,0.0,1.0},{1.0,0.0,1.0},{1.0,1.0,1.0},{0.0,1.0,1.0}};
-float back[4][3]={{3,3,3},{3,0,3},{3,0,-3},{3,3,-3}};
+
 float left[4][3]={{0.0,0.0,0.0},{0.0,0.0,1.0},{0.0,1.0,1.0},{0.0,1.0,0.0}};
+
+
+//float bottom[4][3]={{-3,0,-3},{-3,0,3},{3,0,3},{3,0,-3}};
+float back[4][3]={{3,3,3},{3,0,3},{3,0,-3},{3,3,-3}};
 float right[4][3]={{-3,0,3},{3,0,3},{3,3,3},{-3,3,3}};
 float top[4][3]={{-3,3,-3},{3,3,-3},{3,3,3},{-3,3,3}};
-//float bottom[4][3]={{-3,0,-3},{-3,0,3},{3,0,3},{3,0,-3}};
 float bottom[4][3]={{-3,0,-3},{-3,0,3},{3,0,3},{3,0,-3}};
 float mytexcoords[4][2] = {{0.0,1.0},{1.0,1.0},{1.0,0.0},{0.0,0.0}};
-/*glVertex3f(1,1,1);
-glVertex3f(1,-1,1);
-glVertex3f(1,-1,-1);
-glVertex3f(1,1,-1);
 
-(-1, -1, -1)
-(-1, -1, 1)
-(1, -1, 1)
-(1, -1, -1)
-*/
+float roomVArray[16][3] = {{-3,0,-3},{-3,0,3},{3,0,3},{3,0,-3},{-3,0,3},{3,0,3},{3,3,3},{-3,3,3},{-3,3,3},{3,3,3},{3,3,-3},{-3,3,-3},{3,3,3},{3,0,3},{3,0,-3},{3,3,-3}};//{3,3,3},{3,0,3},{3,0,-3},{3,3,-3}
+
 glUseProgram(sprogram1);	
 set_uniform_parameters(sprogram1, 2);
 glActiveTexture(GL_TEXTURE2);
 glBindTexture(GL_TEXTURE_2D,3);
-glActiveTexture(GL_TEXTURE3);
-glBindTexture(GL_TEXTURE_2D,4);
+//glActiveTexture(GL_TEXTURE3);
+//glBindTexture(GL_TEXTURE_2D,4);
 
 glEnable(GL_TEXTURE_2D);
+
+
+
    glBegin(GL_QUADS);
 int i;
+
+/*
+glNormal3f(0.0,0.0,1.0);
+for(i=0;i<16;i++){
+	glTexCoord2fv(mytexcoords[i]);
+	glVertex3f(roomVArray[i][0],roomVArray[i][1],roomVArray[i][2]);
+}
+*/
 
 glNormal3f(0.0,0.0,1.0);
 for(i=0;i<4;i++){
@@ -272,61 +290,35 @@ for(i=0;i<4;i++){
 }
 	
 
-       // Floor 
- /*      
-glVertex3f(-2,-0,-2);
-glVertex3f(-2,-0,2);
-glVertex3f(2,-0,2);
-glVertex3f(2,-0,-2);
-*/
 
-/* Ceiling */
-/*
-glVertex3f(-1,1,-1);
-glVertex3f(1,1,-1);
-glVertex3f(1,1,1);
-glVertex3f(-1,1,1);
-    // Walls 
-glVertex3f(-1,-1,1);
-glVertex3f(1,-1,1);
-glVertex3f(1,1,1);
-glVertex3f(-1,1,1);
-
-glVertex3f(-1,-1,-1);
-glVertex3f(1,-1,-1);
-glVertex3f(1,1,-1);
-glVertex3f(-1,1,-1);
-
-glVertex3f(1,1,1);
-glVertex3f(1,-1,1);
-glVertex3f(1,-1,-1);
-glVertex3f(1,1,-1);
-
-glVertex3f(-1,1,1);
-glVertex3f(-1,-1,1);
-glVertex3f(-1,-1,-1);
-glVertex3f(-1,1,-1);
-*/
 glEnd();
 glDisable(GL_TEXTURE_2D);
-/*
-glUseProgram(sprogram1);
-glBegin(GL_QUADS); 
-glNormal3f(0.0,0.0,-1.0);
-for(i=0;i<4;i++) glVertex3f(back[i][0],back[i][1],back[i][2]);
-glNormal3f(-1.0,0.0,0.0);
-for(i=0;i<4;i++) glVertex3f(left[i][0],left[i][1],left[i][2]);
-glNormal3f(1.0,0.0,0.0);
-for(i=0;i<4;i++) glVertex3f(right[i][0],right[i][1],right[i][2]);
-glNormal3f(0.0,1.0,0.0);
-for(i=0;i<4;i++) glVertex3f(top[i][0],top[i][1],top[i][2]);
-glNormal3f(0.0,-1.0,0.0);
-for(i=0;i<4;i++) glVertex3f(bottom[i][0],bottom[i][1],bottom[i][2]);
-glEnd();
-glutSwapBuffers();*/
+
 //-------------------------
-       
-       
+      //---water
+//-----------------------------
+glUseProgram(sprogram_water);	
+set_uniform_parameters(sprogram_water, 3);
+glActiveTexture(GL_TEXTURE4);
+glBindTexture(GL_TEXTURE_2D,5);
+glActiveTexture(GL_TEXTURE5);
+glBindTexture(GL_TEXTURE_2D,6);
+float water[4][3]={{-2,0,-2},{-2,0,2},{2,0,2},{2,0,-2}};
+
+glEnable(GL_TEXTURE_2D);
+
+
+
+   glBegin(GL_QUADS);
+
+  glNormal3f(0.0,0.0,1.0);
+for(i=0;i<4;i++){
+	glTexCoord2fv(mytexcoords[i]);
+	glVertex3f(water[i][0],water[i][1],water[i][2]);
+}   
+      
+glEnd();
+glDisable(GL_TEXTURE_2D); 
  //-------------------------     
 //----------Teapot
 //----------------
@@ -342,7 +334,6 @@ glBindTexture(GL_TEXTURE_2D,2);
 glEnable(GL_TEXTURE_2D);
 
    glBegin(GL_QUADS);
-
 
     for(int i=0;i<(faceSize);i++){
         glNormal3f(normals[i].x,normals[i].y,
@@ -466,6 +457,8 @@ float light0_specular[] = { 1.0, 1.0, 1.0, 0.0 };
 float light0_position[] = { -10.5, 2.0, 2.0, 1.0 };
 float light0_direction[] = { -1.5, -2.0, -2.0, 1.0};
 
+
+
 /* turn off scene default ambient */
 glLightModelfv(GL_LIGHT_MODEL_AMBIENT,light0_ambient);
 
@@ -513,8 +506,10 @@ void initOGL(int argc, char **argv)
 
    load_texture("data/copper.ppm",1);
    load_texture("data/coppernormal.ppm",2);
-   load_texture("data/wall_1.ppm",3);
-   //load_texture("data/wallnormal.ppm",4);
+   load_texture("data/wood.ppm",3);
+  // load_texture("data/woodmap.ppm",4);
+   load_texture("data/water.ppm",5);
+   load_texture("data/water_1.ppm",6);
 
 setup_the_viewvol();
 do_lights();
@@ -522,6 +517,7 @@ do_material();
 
 sprogram=set_shaders("tex.vert", "tex.frag");
 sprogram1=set_shaders("tex_floor.vert", "tex_floor.frag");
+sprogram_water=set_shaders("tex_water.vert", "tex_water.frag");
 
 }
 
