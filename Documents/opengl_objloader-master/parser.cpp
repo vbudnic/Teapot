@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
 struct fv2{
 	float x,y;
 };
@@ -154,25 +155,38 @@ gluLookAt(eye.x,eye.y,eye.z,view.x,view.y,view.z,up.x,up.y,up.z);
 
 
 //------------------------------------------------------------
-void set_uniform_parameters(unsigned int p)
+void set_uniform_parameters(unsigned int p, int type)
 {
-int location;
-location = glGetUniformLocation(p,"mytexture");
-glUniform1i(location,0);
-location = glGetUniformLocation(p,"mynormalmap");
-glUniform1i(location,1);
-/*location = glGetUniformLocation(p,"mytexture1");
-glUniform1i(location,2);*/
-}
-void set_uniform_parameters1(unsigned int p)
-{
-int location;
-location = glGetUniformLocation(p,"mytexture");
-glUniform1i(location,2);
-location = glGetUniformLocation(p,"mynormalmap");
-glUniform1i(location,3);
 
+int location;
+//---if type is 1 -> teapot; 2 -> floor; 3 -> top;
+switch (type) {
+case 1:
+	
+	location = glGetUniformLocation(p,"mytexture");
+	glUniform1i(location,0);
+	location = glGetUniformLocation(p,"mynormalmap");
+	glUniform1i(location,1);
+	break;
+case 2:
+	
+	location = glGetUniformLocation(p,"mytexture");
+	glUniform1i(location,2);
+	location = glGetUniformLocation(p,"mynormalmap");
+	glUniform1i(location,3);
+	break;
+default:
+	
+	location = glGetUniformLocation(p,"mytexture");
+	glUniform1i(location,0);
+	location = glGetUniformLocation(p,"mynormalmap");
+	glUniform1i(location,1);
+	break;
 }
+	
+}
+
+
 
 //------------------------------------------------------------
 void draw_stuff()
@@ -202,7 +216,7 @@ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 //use Texture
 glUseProgram(sprogram);	
-set_uniform_parameters(sprogram);
+set_uniform_parameters(sprogram, 1);
 glActiveTexture(GL_TEXTURE0);
 glBindTexture(GL_TEXTURE_2D,1);
 glActiveTexture(GL_TEXTURE1);
@@ -259,7 +273,7 @@ float bottom[4][3]={{-2,0,-2},{-2,0,2},{2,0,2},{2,-0,-2}};
 float mytexcoords[4][2] = {{0.0,1.0},{1.0,1.0},{1.0,0.0},{0.0,0.0}};
 	
 glUseProgram(sprogram1);	
-set_uniform_parameters1(sprogram1);
+set_uniform_parameters(sprogram1, 2);
 glActiveTexture(GL_TEXTURE2);
 glBindTexture(GL_TEXTURE_2D,3);
 glActiveTexture(GL_TEXTURE3);
@@ -358,7 +372,7 @@ fclose(fp);
 return content;
 }
 //--------------------------------------------------------------------
-unsigned int set_shaders()
+unsigned int set_shaders(char *vert, char *frag)
 {
 GLint vertCompiled, fragCompiled;
 char *vs, *fs;
@@ -366,8 +380,8 @@ GLuint v, f, p;
 
 v = glCreateShader(GL_VERTEX_SHADER);
 f = glCreateShader(GL_FRAGMENT_SHADER);
-vs = read_shader_program("tex.vert");
-fs = read_shader_program("tex.frag");
+vs = read_shader_program(vert);
+fs = read_shader_program(frag);
 glShaderSource(v,1,(const char **)&vs,NULL);
 glShaderSource(f,1,(const char **)&fs,NULL);
 free(vs);
@@ -383,29 +397,7 @@ return(p);
 }
 
 
-unsigned int set_shaders1()
-{
-GLint vertCompiled, fragCompiled;
-char *vs, *fs;
-GLuint v, f, p;
 
-v = glCreateShader(GL_VERTEX_SHADER);
-f = glCreateShader(GL_FRAGMENT_SHADER);
-vs = read_shader_program("tex_floor.vert");
-fs = read_shader_program("tex_floor.frag");
-glShaderSource(v,1,(const char **)&vs,NULL);
-glShaderSource(f,1,(const char **)&fs,NULL);
-free(vs);
-free(fs); 
-glCompileShader(v);
-glCompileShader(f);
-p = glCreateProgram();
-glAttachShader(p,f);
-glAttachShader(p,v);
-glLinkProgram(p);
-// glUseProgram(p);
-return(p);
-}
 //--------------------------------------------------------------------
 
 
@@ -510,8 +502,8 @@ setup_the_viewvol();
 do_lights();
 do_material();
 
-sprogram=set_shaders();
-sprogram1=set_shaders1();
+sprogram=set_shaders("tex.vert", "tex.frag");
+sprogram1=set_shaders("tex_floor.vert", "tex_floor.frag");
 
 }
 
