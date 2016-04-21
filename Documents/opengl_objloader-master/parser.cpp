@@ -167,8 +167,10 @@ glUniform1i(location,2);*/
 void set_uniform_parameters1(unsigned int p)
 {
 int location;
-location = glGetUniformLocation(p,"mytexturefloor");
+location = glGetUniformLocation(p,"mytexture");
 glUniform1i(location,2);
+location = glGetUniformLocation(p,"mynormalmap");
+glUniform1i(location,3);
 
 }
 
@@ -260,6 +262,8 @@ glUseProgram(sprogram1);
 set_uniform_parameters1(sprogram1);
 glActiveTexture(GL_TEXTURE2);
 glBindTexture(GL_TEXTURE_2D,3);
+glActiveTexture(GL_TEXTURE3);
+glBindTexture(GL_TEXTURE_2D,4);
 
 glEnable(GL_TEXTURE_2D);
    glBegin(GL_QUADS);
@@ -499,8 +503,8 @@ void initOGL(int argc, char **argv)
 
    load_texture("data/copper.ppm",1);
    load_texture("data/coppernormal.ppm",2);
-   load_texture("data/water.ppm",3);
-  // load_texture("data/bricks.ppm",3);
+   load_texture("data/wood.ppm",3);
+   load_texture("data/fieldstoneN.ppm",4);
 
 setup_the_viewvol();
 do_lights();
