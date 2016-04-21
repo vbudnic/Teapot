@@ -8,6 +8,11 @@
 #include <cstring>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdlib.h>
+#include <math.h>
+
+#define XRES 768
+#define YRES 768
 
 struct fv2{
 	float x,y;
@@ -21,22 +26,31 @@ struct iv3{
 	int x,y,z;
 };
 
-// std::vector<fv3> vertex;
-// std::vector<fv2> tcoord;
-// std::vector<fv3> normal;
-// std::vector<fv3> tangent;
-// std::vector<fv3> bitangent;
-// std::vector<std::vector<iv3> > face;
-// 
+struct OBJ{
+std::vector<fv3> vertex;
+std::vector<fv2> tcoord;
+std::vector<fv3> normal;
+std::vector<fv3> tangent;
+std::vector<fv3> bitangent;
+//std::vector<std::vector<iv3> > face;
+}obj;
+
 int faceSize=0;
 int sprogram;
-bool loadOBJ(const char* path,std::vector<fv3> &vertex, 
-    std::vector<fv2> &tcoord,std::vector<fv3> &normal, 
-    std::vector<fv3> &tangent,std::vector<fv3> &bitangent,
-    	std::vector< unsigned int > &vi,std::vector< unsigned int > &ti,
-        std::vector< unsigned int > &ni){
+int sprogram1;
+GLfloat light0_position[] = { -4.0, 2.0, -3.0, 1.0 };
+GLfloat light0_direction[] = { 0.5, -2.0, 0.5, 1.0};
 
+void lights()
+{
+glLightfv(GL_LIGHT0,GL_POSITION,light0_position);
+}
 
+bool loadOBJ(const char* path){
+
+	std::vector< unsigned int > vi;
+	std::vector< unsigned int > ti;
+        std::vector< unsigned int > ni;
 	std::vector<fv3> tv;
 	std::vector<fv2> tt;
 	std::vector<fv3> tn;
@@ -109,16 +123,16 @@ bool loadOBJ(const char* path,std::vector<fv3> &vertex,
 	}	
 
     for(unsigned int i=0;i<vi.size();i++){
-        vertex.push_back(tv[vi[i]-1]);
-        tangent.push_back(ttan[vi[i]-1]);
-        bitangent.push_back(tbitan[vi[i]-1]);
+        obj.vertex.push_back(tv[vi[i]-1]);
+        obj.tangent.push_back(ttan[vi[i]-1]);
+        obj.bitangent.push_back(tbitan[vi[i]-1]);
        
     }
     for(unsigned int i=0;i<ti.size();i++){
-        tcoord.push_back(tt[ti[i]-1]);
+        obj.tcoord.push_back(tt[ti[i]-1]);
     }
     for(unsigned int i=0;i<ni.size();i++){
-        normal.push_back(tn[ni[i]-1]);
+        obj.normal.push_back(tn[ni[i]-1]);
     }
     return true;
 }
@@ -134,13 +148,13 @@ glEnable(GL_DEPTH_TEST);
 /* specify size and shape of view volume */
 glMatrixMode(GL_PROJECTION);
 glLoadIdentity();
-gluPerspective(45.0,1.7,0.1,20.0);
+gluPerspective(45.0,1.6,0.1,20.0);
 
 /* specify position for view volume */
 glMatrixMode(GL_MODELVIEW);
 glLoadIdentity();
 
-eye.x = -2.0; eye.y = 2.0; eye.z = 1.0;
+eye.x = -4.0; eye.y = 2.0; eye.z = -3.0;
 view.x = 0.0; view.y = 0.5; view.z = 0.0;
 up.x = 0.0; up.y = 1.0; up.z = 0.0;
 
@@ -148,32 +162,57 @@ gluLookAt(eye.x,eye.y,eye.z,view.x,view.y,view.z,up.x,up.y,up.z);
 }
 
 
-
-void set_uniform_parameters(unsigned int p)
+//------------------------------------------------------------
+void set_uniform_parameters(unsigned int p,unsigned int id1, unsigned int id2)
 {
 int location;
 location = glGetUniformLocation(p,"mytexture");
-glUniform1i(location,0);
+glUniform1i(location,id1);
 location = glGetUniformLocation(p,"mynormalmap");
-glUniform1i(location,1);
-location = glGetUniformLocation(p,"mytexture1");
-glUniform1i(location,2);
+glUniform1i(location,id2);
+/*location = glGetUniformLocation(p,"mytexture1");
+glUniform1i(location,2);*/
 }
 
+void view_volume(float *ep, float *vp)
+{
+glMatrixMode(GL_PROJECTION);
+glLoadIdentity();
+gluPerspective(45.0,1.6,0.1,20.0);
+glMatrixMode(GL_MODELVIEW);
+glLoadIdentity();
+gluLookAt(ep[0],ep[1],ep[2],vp[0],vp[1],vp[2],0.0,1.0,0.0);
+}
+
+void save_matrix(float *ep, float *vp)
+{
+glMatrixMode(GL_TEXTURE); 
+// This must match the unit used in the vertex shader.
+glActiveTexture(GL_TEXTURE0);
+glLoadIdentity();
+glTranslatef(0.0,0.0,-0.005);
+glScalef(0.5,0.5,0.5);
+glTranslatef(1.0,1.0,1.0);
+gluPerspective(45.0,1.6,0.1,20.0);
+gluLookAt(ep[0],ep[1],ep[2],vp[0],vp[1],vp[2],0.0,1.0,0.0);
+}
+
+//------------------------------------------------------------
 void draw_stuff()
 {
-std::vector< fv3 > vertices;
-std::vector< fv2 > tc;
-std::vector< fv3 > normals;
-std::vector< fv3 > tangent;
-std::vector< fv3 > bitangent;
-std::vector<std::vector< iv3 > > faces;
-std::vector< unsigned int > vi,ti,ni;
-//int vindex,tindex,nindex;
+//std::vector< fv3 > vertices;
+//std::vector< fv2 > tc;
+//std::vector< fv3 > normals;
+//std::vector< fv3 > tangent;
+//std::vector< fv3 > bitangent;
+//std::vector<std::vector< iv3 > > faces;
+//std::vector< unsigned int > vi,ti,ni;
+float eyepoint[3], viewpoint[3];
+int k;
+
 int tanIndex=glGetUniformLocation(sprogram,"tangent");
 int bitanIndex=glGetUniformLocation(sprogram,"bitangent");
-bool loadSucceed = loadOBJ("data/teapot.605.obj", vertices, tc, normals,
-    tangent,bitangent,vi,ti,ni);
+bool loadSucceed = loadOBJ("data/teapot.605.obj");
 if(!loadSucceed){
     std::cout<<"load .obj file failed!"<<std::endl;
 }
@@ -184,47 +223,132 @@ if(!loadSucceed){
 
 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+// Render first from the point of view of the light source. 
+// This render will go to texture (#1), and it will not use shaders.
+glBindFramebufferEXT(GL_FRAMEBUFFER,1); 
+glUseProgram(0);
+for(k=0;k<3;k++){ 
+	eyepoint[k] = light0_position[k]; 
+	viewpoint[k] = light0_direction[k]+light0_position[k];
+	}
+//view_volume(eyepoint,viewpoint);
+// Set lights after vv so that shader can assume eye coordinates.
+lights(); 
+
+glBegin(GL_QUADS);
+    for(int i=0;i<(faceSize);i++){
+        glNormal3f(obj.normal[i].x,obj.normal[i].y,
+              obj.normal[i].z);
+            glTexCoord2f(obj.tcoord[i].x,obj.tcoord[i].y);
+            glVertexAttrib3f(tanIndex,obj.tangent[i].x,
+                obj.tangent[i].y,obj.tangent[i].z);
+            glVertexAttrib3f(bitanIndex,obj.bitangent[i].x,
+                obj.bitangent[i].y,obj.bitangent[i].z);
+            glVertex3f(obj.vertex[i].x,obj.vertex[i].y,
+             obj.vertex[i].z);
+    }
+glEnd(); 
+
+float front[4][3]={{0.0,0.0,1.0},{1.0,0.0,1.0},{1.0,1.0,1.0},{0.0,1.0,1.0}};
+float back[4][3]={{0.0,0.0,0.0},{0.0,1.0,0.0},{1.0,1.0,0.0},{1.0,0.0,0.0}};
+float left[4][3]={{0.0,0.0,0.0},{0.0,0.0,1.0},{0.0,1.0,1.0},{0.0,1.0,0.0}};
+float right[4][3]={{1.0,0.0,0.0},{1.0,1.0,0.0},{1.0,1.0,1.0},{1.0,0.0,1.0}};
+float top[4][3]={{2,0,2},{2,-0,-2},{-2,0,-2},{-2,0,2}};
+float bottom[4][3]={{-2,0,-2},{-2,0,2},{2,0,2},{2,-0,-2}};
+float mytexcoords[4][2] = {{0.0,1.0},{1.0,1.0},{1.0,0.0},{0.0,0.0}};
+	
+glUseProgram(sprogram1);	
+set_uniform_parameters(sprogram1,2,3);
+glActiveTexture(GL_TEXTURE2);
+glBindTexture(GL_TEXTURE_2D,3);
+glActiveTexture(GL_TEXTURE3);
+glBindTexture(GL_TEXTURE_2D,4);
+
+glEnable(GL_TEXTURE_2D);
+   glBegin(GL_QUADS);
+int i;
+glNormal3f(0.0,0.0,1.0);
+for(i=0;i<4;i++){
+	glTexCoord2fv(mytexcoords[i]);
+	glVertex3f(bottom[i][0],bottom[i][1],bottom[i][2]);
+	}
+glEnd();
+glDisable(GL_TEXTURE_2D);
+
+glBindFramebufferEXT(GL_FRAMEBUFFER,0);
+// Save the "view from eyepoint" transformation.
+save_matrix(eyepoint,viewpoint);
+
+// Switch to the shader and use texture #1.
+
 //use Texture
 glUseProgram(sprogram);	
-set_uniform_parameters(sprogram);
+set_uniform_parameters(sprogram,0,1);
+// This unit number must match that set as a uniform value for the
+// fragment shader.
 glActiveTexture(GL_TEXTURE0);
 glBindTexture(GL_TEXTURE_2D,1);
 glActiveTexture(GL_TEXTURE1);
 glBindTexture(GL_TEXTURE_2D,2);
 
-glActiveTexture(GL_TEXTURE2);
-glBindTexture(GL_TEXTURE_2D,3);
+// Draw scene from the intended eye point, complete with shadows. 
+eyepoint[0] = -4.0; eyepoint[1] = 2.0; eyepoint[2] = -3.0;
+viewpoint[0] = 0.0; viewpoint[1] = 0.5; viewpoint[1] = 0.0;
+//view_volume(eyepoint,viewpoint);
+lights();
+//glActiveTexture(GL_TEXTURE2);
+//glBindTexture(GL_TEXTURE_2D,3);
 glEnable(GL_TEXTURE_2D);
 
    glBegin(GL_QUADS);
-    for(int i=0;i<(faceSize);i++){
-        glNormal3f(normals[i].x,normals[i].y,
-              normals[i].z);
-            glTexCoord2f(tc[i].x,tc[i].y);
-            glVertexAttrib3f(tanIndex,tangent[i].x,
-                tangent[i].y,tangent[i].z);
-            glVertexAttrib3f(bitanIndex,bitangent[i].x,
-                bitangent[i].y,bitangent[i].z);
-            glVertex3f(vertices[i].x,vertices[i].y,
-             vertices[i].z);
-    }
-glEnd();
 
+    for(int i=0;i<(faceSize);i++){
+        glNormal3f(obj.normal[i].x,obj.normal[i].y,
+              obj.normal[i].z);
+            glTexCoord2f(obj.tcoord[i].x,obj.tcoord[i].y);
+            glVertexAttrib3f(tanIndex,obj.tangent[i].x,
+                obj.tangent[i].y,obj.tangent[i].z);
+            glVertexAttrib3f(bitanIndex,obj.bitangent[i].x,
+                obj.bitangent[i].y,obj.bitangent[i].z);
+            glVertex3f(obj.vertex[i].x,obj.vertex[i].y,
+             obj.vertex[i].z);
+    }  
+glEnd();    
 glDisable(GL_TEXTURE_2D);
+
+//---------------------------
+
 
 glFlush();
 }
 
-void update()
+void build_shadowmap()
 {
-//usleep(10000);
-//glTranslatef(0.5,0.0,0.5);
-//glRotatef(1.0,0.0,1.0,0.0);
-//glTranslatef(-0.5,0.0,-0.5);
-//glutPostRedisplay();
+// Set properties of texture id #1.
+glBindTexture(GL_TEXTURE_2D,3);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
+glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );
+// Declare size and type of texture; it has no data initially (last arg 0).
+glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, XRES, YRES, 0, 
+	GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
+// Back to default.
+glBindTexture(GL_TEXTURE_2D, 0);
+
+glBindFramebufferEXT(GL_FRAMEBUFFER,1);
+glDrawBuffer(GL_NONE); // No color buffers will be written.
+
+// Attach this framebuffer (id #1 above) to texture (id #1 is penultimate arg),
+// so that we can perform an offscreen render-to-texture.
+glFramebufferTexture2D(GL_FRAMEBUFFER,GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,1,0);
+// Back to default.
+glBindFramebufferEXT(GL_FRAMEBUFFER,0);
 }
 
-char *read_shader_program(char *filename) 
+
+
+char *read_shader_program(char const*filename) 
 {
 FILE *fp;
 char *content = NULL;
@@ -239,17 +363,16 @@ content[count] = '\0';
 fclose(fp);
 return content;
 }
-
-unsigned int set_shaders()
+//--------------------------------------------------------------------
+unsigned int set_shaders(char const* vert, char const* frag)
 {
-GLint vertCompiled, fragCompiled;
 char *vs, *fs;
 GLuint v, f, p;
 
 v = glCreateShader(GL_VERTEX_SHADER);
 f = glCreateShader(GL_FRAGMENT_SHADER);
-vs = read_shader_program("tex.vert");
-fs = read_shader_program("tex.frag");
+vs = read_shader_program(vert);
+fs = read_shader_program(frag);
 glShaderSource(v,1,(const char **)&vs,NULL);
 glShaderSource(f,1,(const char **)&fs,NULL);
 free(vs);
@@ -260,20 +383,17 @@ p = glCreateProgram();
 glAttachShader(p,f);
 glAttachShader(p,v);
 glLinkProgram(p);
-// glUseProgram(p);
 return(p);
 }
+//--------------------------------------------------------------------
 
 
-
-void load_texture(char *filename,unsigned int tid)
+void load_texture(char const*filename,unsigned int tid)
 {
-//FILE *fopen(), *fptr;
 FILE  *fptr;
 char buf[512], *parse;
 int im_size, im_width, im_height, max_color;
-unsigned char *texture_bytes, *tb_alpha, *tb_src, *tb_dst, *tb_final, *aarg; 
-//------------last edit save----------------
+unsigned char *texture_bytes;
 
 fptr=fopen(filename,"r");
 fgets(buf,512,fptr);
@@ -310,7 +430,7 @@ void do_lights()
 float light0_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
 float light0_diffuse[] = { 1.0, 1.0, 1.0, 0.0 };
 float light0_specular[] = { 1.0, 1.0, 1.0, 0.0 };
-float light0_position[] = { -10.5, 2.0, 2.0, 1.0 };
+float light0_position[] = { -6.5, 2.0, 2.0, 1.0 };
 float light0_direction[] = { -1.5, -2.0, -2.0, 1.0};
 
 /* turn off scene default ambient */
@@ -356,25 +476,28 @@ void initOGL(int argc, char **argv)
    glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE | GLUT_ACCUM);
    glutInitWindowSize(1280, 720);
    glutInitWindowPosition(100 , 50);
-   glutCreateWindow("teapot test");
+   glutCreateWindow("Teapot (Yu Li, Volodymyr Budnichenko)");
 
-   load_texture("data/water1.ppm",1);
-   load_texture("data/fieldstoneN.ppm",2);
-   load_texture("data/texture.ppm",3);
+   load_texture("data/Crack-Texture.ppm",1);
+   load_texture("data/coppernormal.ppm",2);
+   load_texture("data/wall2.ppm",3);
+   load_texture("data/wall2new.ppm",4);
 
 setup_the_viewvol();
 do_lights();
 do_material();
 
-sprogram=set_shaders();
+build_shadowmap();
+
+sprogram=set_shaders("tex.vert","tex.frag");
+sprogram1=set_shaders("tex_floor.vert","tex_floor.frag");
 
 }
 
-void getout(unsigned char key, int x, int y)
+void getout(unsigned char key,int x,int y)
 {
 switch(key) {
         case 'q':               
-                //glDeleteBuffers(1,&mybuf);
                 exit(1);
         default:
                 break;
@@ -385,7 +508,7 @@ int main(int argc, char **argv)
 {
 initOGL(argc,argv);
 glutDisplayFunc(draw_stuff);
-glutIdleFunc(update);
+//glutIdleFunc(update);
 glutKeyboardFunc(getout);
 glutMainLoop();
 return 0;
