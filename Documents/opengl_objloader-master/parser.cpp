@@ -146,7 +146,7 @@ gluPerspective(45.0,1.6,0.1,20.0);
 glMatrixMode(GL_MODELVIEW);
 glLoadIdentity();
 
-eye.x = -4.0; eye.y = 2.0; eye.z = -3.0;
+eye.x = -5.0; eye.y = 2.0; eye.z = -3.0;
 view.x = 0.0; view.y = 0.5; view.z = 0.0;
 up.x = 0.0; up.y = 1.0; up.z = 0.0;
 
@@ -215,63 +215,27 @@ if(!loadSucceed){
 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 //use Texture
-glUseProgram(sprogram);	
-set_uniform_parameters(sprogram, 1);
-glActiveTexture(GL_TEXTURE0);
-glBindTexture(GL_TEXTURE_2D,1);
-glActiveTexture(GL_TEXTURE1);
-glBindTexture(GL_TEXTURE_2D,2);
-
-//glActiveTexture(GL_TEXTURE2);
-//glBindTexture(GL_TEXTURE_2D,3);
-glEnable(GL_TEXTURE_2D);
-
-   glBegin(GL_QUADS);
-
-     /* glVertex3f( 3.0f, 0.0f, -3.0f);
-      glVertex3f(-3.0f, 0.0f, -3.0f);
-      glVertex3f(-3.0f, 0.0f,  3.0f);
-      glVertex3f( 3.0f, 0.0f,  3.0f);
-     */
-    
-     
- /*    for (i = -20; i < 20; i++)
- for (j = -20; j < 20; j++)
- {
- float startX=  TS*(i+20);
- float startY = TS*(j+20);
- glTexCoord2f( startX + 0.0f, startY + 0 );  glVertex2f(i, j);
- glTexCoord2f( startX + TS, startY + 0 );  glVertex2f(i + 1, j);
- glTexCoord2f( startX + TS, startY + TS );  glVertex2f(i + 1, j + 1);
- glTexCoord2f( startX + 0.0f, startY + TS );  glVertex2f(i, j + 1);
- }
-      */
-    for(int i=0;i<(faceSize);i++){
-        glNormal3f(normals[i].x,normals[i].y,
-              normals[i].z);
-            glTexCoord2f(tc[i].x,tc[i].y);
-            glVertexAttrib3f(tanIndex,tangent[i].x,
-                tangent[i].y,tangent[i].z);
-            glVertexAttrib3f(bitanIndex,bitangent[i].x,
-                bitangent[i].y,bitangent[i].z);
-            glVertex3f(vertices[i].x,vertices[i].y,
-             vertices[i].z);
-    }
-      
-      
-   
-glEnd();    
-glDisable(GL_TEXTURE_2D);
-
+//-------------------------
+//----Room
 //---------------------------
 float front[4][3]={{0.0,0.0,1.0},{1.0,0.0,1.0},{1.0,1.0,1.0},{0.0,1.0,1.0}};
-float back[4][3]={{0.0,0.0,0.0},{0.0,1.0,0.0},{1.0,1.0,0.0},{1.0,0.0,0.0}};
+float back[4][3]={{3,3,3},{3,0,3},{3,0,-3},{3,3,-3}};
 float left[4][3]={{0.0,0.0,0.0},{0.0,0.0,1.0},{0.0,1.0,1.0},{0.0,1.0,0.0}};
-float right[4][3]={{1.0,0.0,0.0},{1.0,1.0,0.0},{1.0,1.0,1.0},{1.0,0.0,1.0}};
-float top[4][3]={{2,0,2},{2,-0,-2},{-2,0,-2},{-2,0,2}};
-float bottom[4][3]={{-2,0,-2},{-2,0,2},{2,0,2},{2,-0,-2}};
+float right[4][3]={{-3,0,3},{3,0,3},{3,3,3},{-3,3,3}};
+float top[4][3]={{-3,3,-3},{3,3,-3},{3,3,3},{-3,3,3}};
+//float bottom[4][3]={{-3,0,-3},{-3,0,3},{3,0,3},{3,0,-3}};
+float bottom[4][3]={{-3,0,-3},{-3,0,3},{3,0,3},{3,0,-3}};
 float mytexcoords[4][2] = {{0.0,1.0},{1.0,1.0},{1.0,0.0},{0.0,0.0}};
-	
+/*glVertex3f(1,1,1);
+glVertex3f(1,-1,1);
+glVertex3f(1,-1,-1);
+glVertex3f(1,1,-1);
+
+(-1, -1, -1)
+(-1, -1, 1)
+(1, -1, 1)
+(1, -1, -1)
+*/
 glUseProgram(sprogram1);	
 set_uniform_parameters(sprogram1, 2);
 glActiveTexture(GL_TEXTURE2);
@@ -287,7 +251,25 @@ glNormal3f(0.0,0.0,1.0);
 for(i=0;i<4;i++){
 	glTexCoord2fv(mytexcoords[i]);
 	glVertex3f(bottom[i][0],bottom[i][1],bottom[i][2]);
-	}
+}
+//----back	
+glNormal3f(0.0,0.0,1.0);
+for(i=0;i<4;i++){
+	glTexCoord2fv(mytexcoords[i]);
+	glVertex3f(back[i][0],back[i][1],back[i][2]);
+}
+//---right wall
+glNormal3f(0.0,0.0,1.0);
+for(i=0;i<4;i++){
+	glTexCoord2fv(mytexcoords[i]);
+	glVertex3f(right[i][0],right[i][1],right[i][2]);
+}
+//---top
+glNormal3f(0.0,0.0,1.0);
+for(i=0;i<4;i++){
+	glTexCoord2fv(mytexcoords[i]);
+	glVertex3f(top[i][0],top[i][1],top[i][2]);
+}
 	
 
        // Floor 
@@ -343,7 +325,43 @@ for(i=0;i<4;i++) glVertex3f(bottom[i][0],bottom[i][1],bottom[i][2]);
 glEnd();
 glutSwapBuffers();*/
 //-------------------------
-        
+       
+       
+ //-------------------------     
+//----------Teapot
+//----------------
+glUseProgram(sprogram);	
+set_uniform_parameters(sprogram, 1);
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D,1);
+glActiveTexture(GL_TEXTURE1);
+glBindTexture(GL_TEXTURE_2D,2);
+
+//glActiveTexture(GL_TEXTURE2);
+//glBindTexture(GL_TEXTURE_2D,3);
+glEnable(GL_TEXTURE_2D);
+
+   glBegin(GL_QUADS);
+
+
+    for(int i=0;i<(faceSize);i++){
+        glNormal3f(normals[i].x,normals[i].y,
+              normals[i].z);
+            glTexCoord2f(tc[i].x,tc[i].y);
+            glVertexAttrib3f(tanIndex,tangent[i].x,
+                tangent[i].y,tangent[i].z);
+            glVertexAttrib3f(bitanIndex,bitangent[i].x,
+                bitangent[i].y,bitangent[i].z);
+            glVertex3f(vertices[i].x,vertices[i].y,
+             vertices[i].z);
+    }
+      
+      
+   
+glEnd();    
+glDisable(GL_TEXTURE_2D); 
+
+
 glFlush();
 }
 
@@ -495,8 +513,8 @@ void initOGL(int argc, char **argv)
 
    load_texture("data/copper.ppm",1);
    load_texture("data/coppernormal.ppm",2);
-   load_texture("data/wood.ppm",3);
-   load_texture("data/fieldstoneN.ppm",4);
+   load_texture("data/wall_1.ppm",3);
+   //load_texture("data/wallnormal.ppm",4);
 
 setup_the_viewvol();
 do_lights();
