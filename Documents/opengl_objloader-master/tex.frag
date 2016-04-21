@@ -25,11 +25,11 @@ mapN.xy = 2.0*mapN.xy - vec2(1.0,1.0);
 N = normalize(tform*normalize(mapN));
 
 tcolor = vec3(texture2D(mytexture,gl_TexCoord[0].st));
-tcolor1 = vec3(texture2D(mytexture1,gl_TexCoord[0].st));
+//tcolor1 = vec3(texture2D(mytexture1,gl_TexCoord[0].st));
 
-diffuse_color2 = vec4(tcolor,1.0)*max(dot(N,L),0.0);
-diffuse_color1 = vec4(tcolor1,1.0)*max(dot(N,L),0.0);
-diffuse_color = (diffuse_color2 + diffuse_color1)/2;
+diffuse_color = vec4(tcolor,1.0)*max(dot(N,L),0.0);
+/*diffuse_color1 = vec4(tcolor1,1.0)*max(dot(N,L),0.0);
+diffuse_color = (diffuse_color2 + diffuse_color1)/2;*/
 
 specular_color = gl_FrontMaterial.specular*pow(max(dot(H,N),0.0),shininess);
 specular_color *= (shininess+2.0)/(8.0*pi);

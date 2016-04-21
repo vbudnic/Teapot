@@ -8,7 +8,8 @@
 #include <cstring>
 #include <unistd.h>
 #include <fcntl.h>
-
+#include <stdlib.h>
+#include <math.h>
 struct fv2{
 	float x,y;
 };
@@ -21,6 +22,8 @@ struct iv3{
 	int x,y,z;
 };
 
+
+
 // std::vector<fv3> vertex;
 // std::vector<fv2> tcoord;
 // std::vector<fv3> normal;
@@ -30,6 +33,7 @@ struct iv3{
 // 
 int faceSize=0;
 int sprogram;
+int sprogram1;
 bool loadOBJ(const char* path,std::vector<fv3> &vertex, 
     std::vector<fv2> &tcoord,std::vector<fv3> &normal, 
     std::vector<fv3> &tangent,std::vector<fv3> &bitangent,
@@ -134,13 +138,13 @@ glEnable(GL_DEPTH_TEST);
 /* specify size and shape of view volume */
 glMatrixMode(GL_PROJECTION);
 glLoadIdentity();
-gluPerspective(45.0,1.7,0.1,20.0);
+gluPerspective(45.0,1.6,0.1,20.0);
 
 /* specify position for view volume */
 glMatrixMode(GL_MODELVIEW);
 glLoadIdentity();
 
-eye.x = -2.0; eye.y = 2.0; eye.z = 1.0;
+eye.x = -4.0; eye.y = 2.0; eye.z = -3.0;
 view.x = 0.0; view.y = 0.5; view.z = 0.0;
 up.x = 0.0; up.y = 1.0; up.z = 0.0;
 
@@ -148,7 +152,7 @@ gluLookAt(eye.x,eye.y,eye.z,view.x,view.y,view.z,up.x,up.y,up.z);
 }
 
 
-
+//------------------------------------------------------------
 void set_uniform_parameters(unsigned int p)
 {
 int location;
@@ -156,10 +160,18 @@ location = glGetUniformLocation(p,"mytexture");
 glUniform1i(location,0);
 location = glGetUniformLocation(p,"mynormalmap");
 glUniform1i(location,1);
-location = glGetUniformLocation(p,"mytexture1");
-glUniform1i(location,2);
+/*location = glGetUniformLocation(p,"mytexture1");
+glUniform1i(location,2);*/
+}
+void set_uniform_parameters1(unsigned int p)
+{
+int location;
+location = glGetUniformLocation(p,"mytexturefloor");
+glUniform1i(location,0);
+
 }
 
+//------------------------------------------------------------
 void draw_stuff()
 {
 std::vector< fv3 > vertices;
@@ -169,6 +181,7 @@ std::vector< fv3 > tangent;
 std::vector< fv3 > bitangent;
 std::vector<std::vector< iv3 > > faces;
 std::vector< unsigned int > vi,ti,ni;
+
 //int vindex,tindex,nindex;
 int tanIndex=glGetUniformLocation(sprogram,"tangent");
 int bitanIndex=glGetUniformLocation(sprogram,"bitangent");
@@ -192,11 +205,30 @@ glBindTexture(GL_TEXTURE_2D,1);
 glActiveTexture(GL_TEXTURE1);
 glBindTexture(GL_TEXTURE_2D,2);
 
-glActiveTexture(GL_TEXTURE2);
-glBindTexture(GL_TEXTURE_2D,3);
+//glActiveTexture(GL_TEXTURE2);
+//glBindTexture(GL_TEXTURE_2D,3);
 glEnable(GL_TEXTURE_2D);
 
    glBegin(GL_QUADS);
+
+     /* glVertex3f( 3.0f, 0.0f, -3.0f);
+      glVertex3f(-3.0f, 0.0f, -3.0f);
+      glVertex3f(-3.0f, 0.0f,  3.0f);
+      glVertex3f( 3.0f, 0.0f,  3.0f);
+     */
+    
+     
+ /*    for (i = -20; i < 20; i++)
+ for (j = -20; j < 20; j++)
+ {
+ float startX=  TS*(i+20);
+ float startY = TS*(j+20);
+ glTexCoord2f( startX + 0.0f, startY + 0 );  glVertex2f(i, j);
+ glTexCoord2f( startX + TS, startY + 0 );  glVertex2f(i + 1, j);
+ glTexCoord2f( startX + TS, startY + TS );  glVertex2f(i + 1, j + 1);
+ glTexCoord2f( startX + 0.0f, startY + TS );  glVertex2f(i, j + 1);
+ }
+      */
     for(int i=0;i<(faceSize);i++){
         glNormal3f(normals[i].x,normals[i].y,
               normals[i].z);
@@ -208,10 +240,89 @@ glEnable(GL_TEXTURE_2D);
             glVertex3f(vertices[i].x,vertices[i].y,
              vertices[i].z);
     }
-glEnd();
-
+      
+      
+   
+glEnd();    
 glDisable(GL_TEXTURE_2D);
 
+//---------------------------
+float front[4][3]={{0.0,0.0,1.0},{1.0,0.0,1.0},{1.0,1.0,1.0},{0.0,1.0,1.0}};
+float back[4][3]={{0.0,0.0,0.0},{0.0,1.0,0.0},{1.0,1.0,0.0},{1.0,0.0,0.0}};
+float left[4][3]={{0.0,0.0,0.0},{0.0,0.0,1.0},{0.0,1.0,1.0},{0.0,1.0,0.0}};
+float right[4][3]={{1.0,0.0,0.0},{1.0,1.0,0.0},{1.0,1.0,1.0},{1.0,0.0,1.0}};
+float top[4][3]={{0.0,1.0,0.0},{0.0,1.0,1.0},{1.0,1.0,1.0},{1.0,1.0,0.0}};
+float bottom[4][3]={{-2,-0,-2},{-2,-0,2},{2,-0,2},{2,-0,-2}};
+float mytexcoords[4][2] = {{0.0,1.0},{1.0,1.0},{1.0,0.0},{0.0,0.0}};
+	
+glUseProgram(sprogram1);	
+set_uniform_parameters1(sprogram1);
+glActiveTexture(GL_TEXTURE2);
+glBindTexture(GL_TEXTURE_2D,3);
+
+glEnable(GL_TEXTURE_2D);
+   glBegin(GL_QUADS);
+int i;
+glNormal3f(0.0,0.0,1.0);
+for(i=0;i<4;i++){
+	glTexCoord2fv(mytexcoords[i]);
+	glVertex3f(bottom[i][0],bottom[i][1],bottom[i][2]);
+	}
+
+       // Floor 
+ /*      
+glVertex3f(-2,-0,-2);
+glVertex3f(-2,-0,2);
+glVertex3f(2,-0,2);
+glVertex3f(2,-0,-2);
+*/
+
+/* Ceiling */
+/*
+glVertex3f(-1,1,-1);
+glVertex3f(1,1,-1);
+glVertex3f(1,1,1);
+glVertex3f(-1,1,1);
+    // Walls 
+glVertex3f(-1,-1,1);
+glVertex3f(1,-1,1);
+glVertex3f(1,1,1);
+glVertex3f(-1,1,1);
+
+glVertex3f(-1,-1,-1);
+glVertex3f(1,-1,-1);
+glVertex3f(1,1,-1);
+glVertex3f(-1,1,-1);
+
+glVertex3f(1,1,1);
+glVertex3f(1,-1,1);
+glVertex3f(1,-1,-1);
+glVertex3f(1,1,-1);
+
+glVertex3f(-1,1,1);
+glVertex3f(-1,-1,1);
+glVertex3f(-1,-1,-1);
+glVertex3f(-1,1,-1);
+*/
+glEnd();
+glDisable(GL_TEXTURE_2D);
+/*
+glUseProgram(sprogram1);
+glBegin(GL_QUADS); 
+glNormal3f(0.0,0.0,-1.0);
+for(i=0;i<4;i++) glVertex3f(back[i][0],back[i][1],back[i][2]);
+glNormal3f(-1.0,0.0,0.0);
+for(i=0;i<4;i++) glVertex3f(left[i][0],left[i][1],left[i][2]);
+glNormal3f(1.0,0.0,0.0);
+for(i=0;i<4;i++) glVertex3f(right[i][0],right[i][1],right[i][2]);
+glNormal3f(0.0,1.0,0.0);
+for(i=0;i<4;i++) glVertex3f(top[i][0],top[i][1],top[i][2]);
+glNormal3f(0.0,-1.0,0.0);
+for(i=0;i<4;i++) glVertex3f(bottom[i][0],bottom[i][1],bottom[i][2]);
+glEnd();
+glutSwapBuffers();*/
+//-------------------------
+        
 glFlush();
 }
 
@@ -239,7 +350,7 @@ content[count] = '\0';
 fclose(fp);
 return content;
 }
-
+//--------------------------------------------------------------------
 unsigned int set_shaders()
 {
 GLint vertCompiled, fragCompiled;
@@ -264,6 +375,31 @@ glLinkProgram(p);
 return(p);
 }
 
+
+unsigned int set_shaders1()
+{
+GLint vertCompiled, fragCompiled;
+char *vs, *fs;
+GLuint v, f, p;
+
+v = glCreateShader(GL_VERTEX_SHADER);
+f = glCreateShader(GL_FRAGMENT_SHADER);
+vs = read_shader_program("tex_floor.vert");
+fs = read_shader_program("tex_floor.frag");
+glShaderSource(v,1,(const char **)&vs,NULL);
+glShaderSource(f,1,(const char **)&fs,NULL);
+free(vs);
+free(fs); 
+glCompileShader(v);
+glCompileShader(f);
+p = glCreateProgram();
+glAttachShader(p,f);
+glAttachShader(p,v);
+glLinkProgram(p);
+// glUseProgram(p);
+return(p);
+}
+//--------------------------------------------------------------------
 
 
 void load_texture(char *filename,unsigned int tid)
@@ -358,15 +494,17 @@ void initOGL(int argc, char **argv)
    glutInitWindowPosition(100 , 50);
    glutCreateWindow("teapot test");
 
-   load_texture("data/water1.ppm",1);
-   load_texture("data/fieldstoneN.ppm",2);
-   load_texture("data/texture.ppm",3);
+   load_texture("data/copper.ppm",1);
+   load_texture("data/coppernormal.ppm",2);
+   load_texture("data/wood.ppm",3);
+  // load_texture("data/bricks.ppm",3);
 
 setup_the_viewvol();
 do_lights();
 do_material();
 
 sprogram=set_shaders();
+sprogram1=set_shaders1();
 
 }
 
