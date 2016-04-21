@@ -34,6 +34,7 @@ struct iv3{
 int faceSize=0;
 int sprogram;
 int sprogram1;
+
 bool loadOBJ(const char* path,std::vector<fv3> &vertex, 
     std::vector<fv2> &tcoord,std::vector<fv3> &normal, 
     std::vector<fv3> &tangent,std::vector<fv3> &bitangent,
@@ -167,7 +168,7 @@ void set_uniform_parameters1(unsigned int p)
 {
 int location;
 location = glGetUniformLocation(p,"mytexturefloor");
-glUniform1i(location,0);
+glUniform1i(location,2);
 
 }
 
@@ -251,8 +252,8 @@ float front[4][3]={{0.0,0.0,1.0},{1.0,0.0,1.0},{1.0,1.0,1.0},{0.0,1.0,1.0}};
 float back[4][3]={{0.0,0.0,0.0},{0.0,1.0,0.0},{1.0,1.0,0.0},{1.0,0.0,0.0}};
 float left[4][3]={{0.0,0.0,0.0},{0.0,0.0,1.0},{0.0,1.0,1.0},{0.0,1.0,0.0}};
 float right[4][3]={{1.0,0.0,0.0},{1.0,1.0,0.0},{1.0,1.0,1.0},{1.0,0.0,1.0}};
-float top[4][3]={{0.0,1.0,0.0},{0.0,1.0,1.0},{1.0,1.0,1.0},{1.0,1.0,0.0}};
-float bottom[4][3]={{-2,-0,-2},{-2,-0,2},{2,-0,2},{2,-0,-2}};
+float top[4][3]={{2,0,2},{2,-0,-2},{-2,0,-2},{-2,0,2}};
+float bottom[4][3]={{-2,0,-2},{-2,0,2},{2,0,2},{2,-0,-2}};
 float mytexcoords[4][2] = {{0.0,1.0},{1.0,1.0},{1.0,0.0},{0.0,0.0}};
 	
 glUseProgram(sprogram1);	
@@ -263,11 +264,13 @@ glBindTexture(GL_TEXTURE_2D,3);
 glEnable(GL_TEXTURE_2D);
    glBegin(GL_QUADS);
 int i;
+
 glNormal3f(0.0,0.0,1.0);
 for(i=0;i<4;i++){
 	glTexCoord2fv(mytexcoords[i]);
 	glVertex3f(bottom[i][0],bottom[i][1],bottom[i][2]);
 	}
+	
 
        // Floor 
  /*      
@@ -492,11 +495,11 @@ void initOGL(int argc, char **argv)
    glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE | GLUT_ACCUM);
    glutInitWindowSize(1280, 720);
    glutInitWindowPosition(100 , 50);
-   glutCreateWindow("teapot test");
+   glutCreateWindow("Teapot (Yu Li, Volodymyr Budnichenko)");
 
    load_texture("data/copper.ppm",1);
    load_texture("data/coppernormal.ppm",2);
-   load_texture("data/wood.ppm",3);
+   load_texture("data/water.ppm",3);
   // load_texture("data/bricks.ppm",3);
 
 setup_the_viewvol();
