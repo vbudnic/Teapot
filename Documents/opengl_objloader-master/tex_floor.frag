@@ -6,13 +6,13 @@ varying vec4 tcoords;
 
 void main()
 {
+vec4 pccoords;
+float depthsample,clarity;;
 mat3 tform;
 vec3 P, N, L, V, H, mapN, tcolor, tcolor1;
-vec4 pccoords;
 vec4 diffuse_color, specular_color, diffuse_color1, diffuse_color2; 
 float shininess = gl_FrontMaterial.shininess;
 float pi = 3.14159;
-float depthsample,clarity;
 
 // Create a 3x3 matrix from T, B, and N as columns:
 tform = mat3(ec_vtangent,ec_vbitangent,ec_vnormal);
@@ -25,14 +25,15 @@ mapN = vec3(texture2D(mynormalmap,gl_TexCoord[0].st));
 // x, y, and z are in [0.0,1.0], but x and y should be in [-1.0,1.0].
 mapN.xy = 2.0*mapN.xy - vec2(1.0,1.0);
 
-N = normalize(tform*normalize(mapN));
+//N = normalize(tform*normalize(mapN));
+N = normalize(mapN);
 
 pccoords=tcoords/tcoords.w;
 depthsample=texture2D(grayscale,pccoords.st).z;
 clarity=1.0;
 
 // If simulated z is larger than value is saved depth map, point was in shadow.
-if(depthsample < pccoords.z) clarity = 0.8;
+if(depthsample < pccoords.z) clarity = 0.4;
 
 tcolor = vec3(texture2D(mytexture,gl_TexCoord[0].st));
 //tcolor1 = vec3(texture2D(mytexture1,gl_TexCoord[0].st));
@@ -44,8 +45,8 @@ diffuse_color = (diffuse_color2 + diffuse_color1)/2;*/
 specular_color = clarity*gl_FrontMaterial.specular*pow(max(dot(H,N),0.0),shininess);
 specular_color *= (shininess+2.0)/(8.0*pi);
 
+
 gl_FragColor = (diffuse_color + specular_color);
 //gl_FragColor = vec4(tcolor,1.0) ;
 //gl_FragColor = vec4(N,1.0);
 }
-
